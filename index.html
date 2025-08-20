@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shirt Designer Tool</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        
+        .designer-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            padding: 30px;
+        }
+        
+        .canvas-section {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .controls-section {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .shirt-canvas {
+            width: 100%;
+            height: 400px;
+            background-color: #f0f0f0;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            background-image: url('https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .design-element {
+            position: absolute;
+            padding: 5px;
+            cursor: move;
+            user-select: none;
+            border: 1px dashed transparent;
+        }
+        
+        .design-element:hover {
+            border-color: #3498db;
+        }
+        
+        .design-element.active {
+            border-color: #e74c3c;
+        }
+        
+        .text-element {
+            /* Text specific styles */
+        }
+        
+        .image-element {
+            max-width: 200px;
+            max-height: 200px;
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .control-group:last-child {
+            border-bottom: none;
+        }
+        
+        .control-group h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.2rem;
+        }
+        
+        .form-control {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        input[type="color"] {
+            height: 40px;
+            padding: 5px;
+        }
+        
+        input[type="range"] {
+            padding: 0;
+        }
+        
+        input[type="file"] {
+            padding: 8px;
+        }
+        
+        .btn {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-secondary {
+            background-color: #95a5a6;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+        
+        .btn-success {
+            background-color: #2ecc71;
+        }
+        
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .color-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .color-preset {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .color-preset:hover {
+            border-color: #333;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #2ecc71;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            transform: translateX(150%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+        
+        .tab.active {
+            background-color: white;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .image-preview {
+            max-width: 100%;
+            max-height: 150px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .designer-container {
+                flex-direction: column;
+            }
+            
+            .shirt-canvas {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Shirt Designer Tool</h1>
+            <p class="subtitle">Create custom shirts with personalized text and images</p>
+        </header>
+        
+        <div class="designer-container">
+            <div class="canvas-section">
+                <div class="shirt-canvas" id="shirtCanvas">
+                    <!-- Design elements will be added here dynamically -->
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn" id="addTextBtn">Add Text</button>
+                    <button class="btn" id="addImageBtn">Add Image</button>
+                    <button class="btn btn-secondary" id="clearCanvasBtn">Clear All</button>
+                </div>
+            </div>
+            
+            <div class="controls-section">
+                <div class="tabs">
+                    <div class="tab active" data-tab="text">Text</div>
+                    <div class="tab" data-tab="image">Image</div>
+                </div>
+                
+                <!-- Text Controls -->
+                <div class="tab-content active" id="text-tab">
+                    <div class="control-group">
+                        <h3>Text Content</h3>
+                        <div class="form-control">
+                            <label for="textInput">Enter Your Text</label>
+                            <textarea id="textInput" rows="3" placeholder="Type your text here..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3>Text Customization</h3>
+                        <div class="form-control">
+                            <label for="fontSelect">Font Style</label>
+                            <select id="fontSelect">
+                                <option value="Arial">Arial</option>
+                                <option value="Verdana">Verdana</option>
+                                <option value="Georgia">Georgia</option>
+                                <option value="Times New Roman">Times New Roman</option>
+                                <option value="Courier New">Courier New</option>
+                                <option value="Impact">Impact</option>
+                                <option value="Comic Sans MS">Comic Sans MS</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-control">
+                            <label for="fontSize">Font Size: <span id="fontSizeValue">24</span>px</label>
+                            <input type="range" id="fontSize" min="12" max="72" value="24">
+                        </div>
+                        
+                        <div class="form-control">
+                            <label for="textColor">Text Color</label>
+                            <input type="color" id="textColor" value="#000000">
+                            <div class="color-options">
+                                <div class="color-preset" style="background-color: #000000" data-color="#000000"></div>
+                                <div class="color-preset" style="background-color: #e74c3c" data-color="#e74c3c"></div>
+                                <div class="color-preset" style="background-color: #3498db" data-color="#3498db"></div>
+                                <div class="color-preset" style="background-color: #2ecc71" data-color="#2ecc71"></div>
+                                <div class="color-preset" style="background-color: #f1c40f" data-color="#f1c40f"></div>
+                                <div class="color-preset" style="background-color: #9b59b6" data-color="#9b59b6"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-control">
+                            <label for="textAlignment">Text Alignment</label>
+                            <select id="textAlignment">
+                                <option value="left">Left</option>
+                                <option value="center">Center</option>
+                                <option value="right">Right</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3>Text Effects</h3>
+                        <div class="form-control">
+                            <label for="textOutline">Outline</label>
+                            <input type="checkbox" id="textOutline">
+                        </div>
+                        
+                        <div class="form-control">
+                            <label for="textShadow">Shadow</label>
+                            <input type="checkbox" id="textShadow">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Image Controls -->
+                <div class="tab-content" id="image-tab">
+                    <div class="control-group">
+                        <h3>Image Upload</h3>
+                        <div class="form-control">
+                            <label for="imageUpload">Select Image</label>
+                            <input type="file" id="imageUpload" accept="image/*">
+                            <img id="imagePreview" class="image-preview" style="display: none;">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3>Image Customization</h3>
+                        <div class="form-control">
+                            <label for="imageWidth">Width: <span id="imageWidthValue">200</span>px</label>
+                            <input type="range" id="imageWidth" min="50" max="400" value="200">
+                        </div>
+                        
+                        <div class="form-control">
+                            <label for="imageHeight">Height: <span id="imageHeightValue">200</span>px</label>
+                            <input type="range" id="imageHeight" min="50" max="400" value="200">
+                        </div>
+                        
+                        <div class="form-control">
+                            <label for="imageOpacity">Opacity: <span id="imageOpacityValue">100</span>%</label>
+                            <input type="range" id="imageOpacity" min="0" max="100" value="100">
+                        </div>
+                        
+                        <div class="form-control">
+                            <label for="imageRotation">Rotation: <span id="imageRotationValue">0</span>°</label>
+                            <input type="range" id="imageRotation" min="0" max="360" value="0">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3>Image Effects</h3>
+                        <div class="form-control">
+                            <label for="imageGrayscale">Grayscale</label>
+                            <input type="checkbox" id="imageGrayscale">
+                        </div>
+                        
+                        <div class="form-control">
+                            <label for="imageSepia">Sepia</label>
+                            <input type="checkbox" id="imageSepia">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Export Options</h3>
+                    <div class="btn-group">
+                        <button class="btn btn-success" id="saveDesignBtn">Save Design</button>
+                        <button class="btn" id="exportPngBtn">Export as PNG</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const shirtCanvas = document.getElementById('shirtCanvas');
+            const textInput = document.getElementById('textInput');
+            const fontSelect = document.getElementById('fontSelect');
+            const fontSize = document.getElementById('fontSize');
+            const fontSizeValue = document.getElementById('fontSizeValue');
+            const textColor = document.getElementById('textColor');
+            const textAlignment = document.getElementById('textAlignment');
+            const textOutline = document.getElementById('textOutline');
+            const textShadow = document.getElementById('textShadow');
+            const addTextBtn = document.getElementById('addTextBtn');
+            const addImageBtn = document.getElementById('addImageBtn');
+            const clearCanvasBtn = document.getElementById('clearCanvasBtn');
+            const saveDesignBtn = document.getElementById('saveDesignBtn');
+            const exportPngBtn = document.getElementById('exportPngBtn');
+            const notification = document.getElementById('notification');
+            const colorPresets = document.querySelectorAll('.color-preset');
+            
+            // Image Elements
+            const imageUpload = document.getElementById('imageUpload');
+            const imagePreview = document.getElementById('imagePreview');
+            const imageWidth = document.getElementById('imageWidth');
+            const imageWidthValue = document.getElementById('imageWidthValue');
+            const imageHeight = document.getElementById('imageHeight');
+            const imageHeightValue = document.getElementById('imageHeightValue');
+            const imageOpacity = document.getElementById('imageOpacity');
+            const imageOpacityValue = document.getElementById('imageOpacityValue');
+            const imageRotation = document.getElementById('imageRotation');
+            const imageRotationValue = document.getElementById('imageRotationValue');
+            const imageGrayscale = document.getElementById('imageGrayscale');
+            const imageSepia = document.getElementById('imageSepia');
+            
+            // Tabs
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            let activeElement = null;
+            let designElements = [];
+            let isDragging = false;
+            let currentX;
+            let currentY;
+            let initialX;
+            let initialY;
+            let xOffset = 0;
+            let yOffset = 0;
+            let uploadedImageData = null;
+            
+            // Initialize
+            fontSize.addEventListener('input', function() {
+                fontSizeValue.textContent = this.value;
+                updateActiveElement();
+            });
+            
+            imageWidth.addEventListener('input', function() {
+                imageWidthValue.textContent = this.value;
+                updateActiveElement();
+            });
+            
+            imageHeight.addEventListener('input', function() {
+                imageHeightValue.textContent = this.value;
+                updateActiveElement();
+            });
+            
+            imageOpacity.addEventListener('input', function() {
+                imageOpacityValue.textContent = this.value;
+                updateActiveElement();
+            });
+            
+            imageRotation.addEventListener('input', function() {
+                imageRotationValue.textContent = this.value;
+                updateActiveElement();
+            });
+            
+            // Tab switching
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // Remove active class from all tabs and contents
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to clicked tab and corresponding content
+                    this.classList.add('active');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
+            
+            // Image upload
+            imageUpload.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(event) {
+                        uploadedImageData = event.target.result;
+                        imagePreview.src = uploadedImageData;
+                        imagePreview.style.display = 'block';
+                    };
+                    
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // Add text button
+            addTextBtn.addEventListener('click', function() {
+                if (!textInput.value.trim()) {
+                    showNotification('Please enter some text first', 'error');
+                    return;
+                }
+                
+                createTextElement(textInput.value);
+                textInput.value = '';
+            });
+            
+            // Add image button
+            addImageBtn.addEventListener('click', function() {
+                if (!uploadedImageData) {
+                    showNotification('Please upload an image first', 'error');
+                    return;
+                }
+                
+                createImageElement(uploadedImageData);
+            });
+            
+            // Clear canvas
+            clearCanvasBtn.addEventListener('click', function() {
+                if (confirm('Are you sure you want to clear all elements?')) {
+                    shirtCanvas.innerHTML = '';
+                    designElements = [];
+                    activeElement = null;
+                    showNotification('Canvas cleared');
+                }
+            });
+            
+            // Save design
+            saveDesignBtn.addEventListener('click', function() {
+                const designData = {
+                    elements: designElements.map(el => {
+                        if (el.classList.contains('text-element')) {
+                            return {
+                                type: 'text',
+                                content: el.textContent,
+                                style: el.getAttribute('style')
+                            };
+                        } else if (el.classList.contains('image-element')) {
+                            return {
+                                type: 'image',
+                                src: el.getAttribute('src'),
+                                style: el.getAttribute('style')
+                            };
+                        }
+                        return null;
+                    }).filter(item => item !== null)
+                };
+                
+                localStorage.setItem('shirtDesign', JSON.stringify(designData));
+                showNotification('Design saved successfully!');
+            });
+            
+            // Export as PNG
+            exportPngBtn.addEventListener('click', function() {
+                // In a real implementation, we would use html2canvas or similar library
+                // For this demo, we'll show a notification
+                showNotification('Export functionality would be implemented here');
+            });
+            
+            // Color presets
+            colorPresets.forEach(preset => {
+                preset.addEventListener('click', function() {
+                    const color = this.getAttribute('data-color');
+                    textColor.value = color;
+                    updateActiveElement();
+                });
+            });
+            
+            // Text controls change
+            [fontSelect, textColor, textAlignment, textOutline, textShadow].forEach(control => {
+                control.addEventListener('change', updateActiveElement);
+            });
+            
+            // Image controls change
+            [imageGrayscale, imageSepia].forEach(control => {
+                control.addEventListener('change', updateActiveElement);
+            });
+            
+            // Create text element
+            function createTextElement(text) {
+                const textElement = document.createElement('div');
+                textElement.className = 'design-element text-element';
+                textElement.textContent = text;
+                textElement.contentEditable = true;
+                
+                // Position in center of canvas
+                const canvasRect = shirtCanvas.getBoundingClientRect();
+                const xPos = (canvasRect.width / 2) - 50;
+                const yPos = (canvasRect.height / 2) - 15;
+                
+                textElement.style.left = `${xPos}px`;
+                textElement.style.top = `${yPos}px`;
+                textElement.style.fontSize = `${fontSize.value}px`;
+                textElement.style.fontFamily = fontSelect.value;
+                textElement.style.color = textColor.value;
+                textElement.style.textAlign = textAlignment.value;
+                
+                // Apply effects
+                if (textOutline.checked) {
+                    textElement.style.textStroke = '1px black';
+                    textElement.style.webkitTextStroke = '1px black';
+                }
+                
+                if (textShadow.checked) {
+                    textElement.style.textShadow = '2px 2px 4px rgba(0,0,0,0.5)';
+                }
+                
+                shirtCanvas.appendChild(textElement);
+                designElements.push(textElement);
+                
+                // Make it active
+                setActiveElement(textElement);
+                
+                // Add event listeners for dragging
+                textElement.addEventListener('mousedown', dragStart);
+                textElement.addEventListener('click', function() {
+                    setActiveElement(this);
+                });
+                
+                showNotification('Text added to shirt');
+            }
+            
+            // Create image element
+            function createImageElement(src) {
+                const imageElement = document.createElement('img');
+                imageElement.className = 'design-element image-element';
+                imageElement.src = src;
+                
+                // Position in center of canvas
+                const canvasRect = shirtCanvas.getBoundingClientRect();
+                const xPos = (canvasRect.width / 2) - (imageWidth.value / 2);
+                const yPos = (canvasRect.height / 2) - (imageHeight.value / 2);
+                
+                imageElement.style.left = `${xPos}px`;
+                imageElement.style.top = `${yPos}px`;
+                imageElement.style.width = `${imageWidth.value}px`;
+                imageElement.style.height = `${imageHeight.value}px`;
+                imageElement.style.opacity = imageOpacity.value / 100;
+                imageElement.style.transform = `rotate(${imageRotation.value}deg)`;
+                
+                // Apply effects
+                if (imageGrayscale.checked) {
+                    imageElement.style.filter = 'grayscale(100%)';
+                }
+                
+                if (imageSepia.checked) {
+                    imageElement.style.filter = 'sepia(100%)';
+                }
+                
+                shirtCanvas.appendChild(imageElement);
+                designElements.push(imageElement);
+                
+                // Make it active
+                setActiveElement(imageElement);
+                
+                // Add event listeners for dragging
+                imageElement.addEventListener('mousedown', dragStart);
+                imageElement.addEventListener('click', function() {
+                    setActiveElement(this);
+                });
+                
+                showNotification('Image added to shirt');
+            }
+            
+            // Set active element
+            function setActiveElement(element) {
+                // Remove active class from all elements
+                designElements.forEach(el => {
+                    el.classList.remove('active');
+                });
+                
+                // Add active class to current element
+                element.classList.add('active');
+                activeElement = element;
+                
+                // Update controls based on element type
+                if (element.classList.contains('text-element')) {
+                    // Switch to text tab
+                    document.querySelector('[data-tab="text"]').click();
+                    
+                    // Update text controls
+                    textInput.value = element.textContent;
+                    fontSelect.value = element.style.fontFamily.replace(/['"]+/g, '');
+                    fontSize.value = parseInt(element.style.fontSize);
+                    fontSizeValue.textContent = fontSize.value;
+                    textColor.value = rgbToHex(element.style.color);
+                    textAlignment.value = element.style.textAlign || 'left';
+                    
+                    // Check effects
+                    textOutline.checked = element.style.textStroke ? true : false;
+                    textShadow.checked = element.style.textShadow ? true : false;
+                } else if (element.classList.contains('image-element')) {
+                    // Switch to image tab
+                    document.querySelector('[data-tab="image"]').click();
+                    
+                    // Update image controls
+                    imageWidth.value = parseInt(element.style.width);
+                    imageWidthValue.textContent = imageWidth.value;
+                    imageHeight.value = parseInt(element.style.height);
+                    imageHeightValue.textContent = imageHeight.value;
+                    imageOpacity.value = parseFloat(element.style.opacity) * 100;
+                    imageOpacityValue.textContent = imageOpacity.value;
+                    
+                    // Extract rotation from transform
+                    const transform = element.style.transform;
+                    const rotateMatch = transform.match(/rotate\((\d+)deg\)/);
+                    if (rotateMatch) {
+                        imageRotation.value = parseInt(rotateMatch[1]);
+                        imageRotationValue.textContent = imageRotation.value;
+                    }
+                    
+                    // Check effects
+                    imageGrayscale.checked = element.style.filter && element.style.filter.includes('grayscale');
+                    imageSepia.checked = element.style.filter && element.style.filter.includes('sepia');
+                }
+            }
+            
+            // Update active element based on controls
+            function updateActiveElement() {
+                if (!activeElement) return;
+                
+                if (activeElement.classList.contains('text-element')) {
+                    activeElement.style.fontSize = `${fontSize.value}px`;
+                    activeElement.style.fontFamily = fontSelect.value;
+                    activeElement.style.color = textColor.value;
+                    activeElement.style.textAlign = textAlignment.value;
+                    
+                    // Apply effects
+                    if (textOutline.checked) {
+                        activeElement.style.textStroke = '1px black';
+                        activeElement.style.webkitTextStroke = '1px black';
+                    } else {
+                        activeElement.style.textStroke = 'none';
+                        activeElement.style.webkitTextStroke = 'none';
+                    }
+                    
+                    if (textShadow.checked) {
+                        activeElement.style.textShadow = '2px 2px 4px rgba(0,0,0,0.5)';
+                    } else {
+                        activeElement.style.textShadow = 'none';
+                    }
+                } else if (activeElement.classList.contains('image-element')) {
+                    activeElement.style.width = `${imageWidth.value}px`;
+                    activeElement.style.height = `${imageHeight.value}px`;
+                    activeElement.style.opacity = imageOpacity.value / 100;
+                    activeElement.style.transform = `rotate(${imageRotation.value}deg)`;
+                    
+                    // Apply effects
+                    let filter = '';
+                    if (imageGrayscale.checked) {
+                        filter += 'grayscale(100%) ';
+                    }
+                    if (imageSepia.checked) {
+                        filter += 'sepia(100%) ';
+                    }
+                    activeElement.style.filter = filter.trim();
+                }
+            }
+            
+            // Dragging functionality
+            function dragStart(e) {
+                if (e.target.classList.contains('design-element')) {
+                    initialX = e.clientX - xOffset;
+                    initialY = e.clientY - yOffset;
+                    
+                    if (e.target === activeElement) {
+                        isDragging = true;
+                    }
+                }
+            }
+            
+            function dragEnd(e) {
+                initialX = currentX;
+                initialY = currentY;
+                isDragging = false;
+            }
+            
+            function drag(e) {
+                if (isDragging) {
+                    e.preventDefault();
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+                    xOffset = currentX;
+                    yOffset = currentY;
+                    
+                    activeElement.style.transform = `translate(${currentX}px, ${currentY}px) ${activeElement.style.transform.replace(/translate\([^)]*\)/g, '')}`;
+                }
+            }
+            
+            // Add event listeners for dragging
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', dragEnd);
+            
+            // Helper function to convert RGB to HEX
+            function rgbToHex(rgb) {
+                if (!rgb) return '#000000';
+                
+                // If already in hex format
+                if (rgb.charAt(0) === '#') return rgb;
+                
+                // Convert rgb(r, g, b) to hex
+                const result = rgb.match(/\d+/g);
+                if (!result) return '#000000';
+                
+                return "#" + ((1 << 24) + (parseInt(result[0]) << 16) + (parseInt(result[1]) << 8) + parseInt(result[2])).toString(16).slice(1);
+            }
+            
+            // Show notification
+            function showNotification(message, type = 'success') {
+                notification.textContent = message;
+                notification.style.backgroundColor = type === 'error' ? '#e74c3c' : '#2ecc71';
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+            
+            // Load saved design on page load
+            window.addEventListener('load', function() {
+                const savedDesign = localStorage.getItem('shirtDesign');
+                if (savedDesign) {
+                    try {
+                        const designData = JSON.parse(savedDesign);
+                        designData.elements.forEach(item => {
+                            if (item.type === 'text') {
+                                const textElement = document.createElement('div');
+                                textElement.className = 'design-element text-element';
+                                textElement.textContent = item.content;
+                                textElement.setAttribute('style', item.style);
+                                textElement.contentEditable = true;
+                                
+                                shirtCanvas.appendChild(textElement);
+                                designElements.push(textElement);
+                                
+                                // Add event listeners
+                                textElement.addEventListener('mousedown', dragStart);
+                                textElement.addEventListener('click', function() {
+                                    setActiveElement(this);
+                                });
+                            } else if (item.type === 'image') {
+                                const imageElement = document.createElement('img');
+                                imageElement.className = 'design-element image-element';
+                                imageElement.src = item.src;
+                                imageElement.setAttribute('style', item.style);
+                                
+                                shirtCanvas.appendChild(imageElement);
+                                designElements.push(imageElement);
+                                
+                                // Add event listeners
+                                imageElement.addEventListener('mousedown', dragStart);
+                                imageElement.addEventListener('click', function() {
+                                    setActiveElement(this);
+                                });
+                            }
+                        });
+                        
+                        if (designElements.length > 0) {
+                            setActiveElement(designElements[0]);
+                        }
+                    } catch (e) {
+                        console.error('Error loading saved design:', e);
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
